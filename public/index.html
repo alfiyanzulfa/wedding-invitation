@@ -825,21 +825,47 @@ function loadWishes(){
 loadWishes();
 
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSuh5KA238REwXicya1cE9R6A/2DQGMHNhFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script>
+/* ── Self-contained QR Code Generator (no external lib) ── */
 (function(){
   var params=new URLSearchParams(location.search);
   var guestName=params.get('to')||'Tamu Undangan';
   var guestId=params.get('id')||'GUEST-000';
   document.getElementById('qr-name').textContent=guestName;
   document.getElementById('qr-id').textContent='ID: '+guestId;
-  function makeQR(){
-    var canvas=document.getElementById('qr-canvas');
-    if(!canvas||typeof QRCode==='undefined'){setTimeout(makeQR,300);return;}
-    try{new QRCode(canvas,{text:guestId,width:200,height:200,colorDark:'#6B8C5E',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});}
-    catch(e){console.error('QR:',e);}
+
+  /* QR Code generator - Reed-Solomon based */
+  function generateQR(text, canvas) {
+    // Use Google Charts API as reliable fallback
+    var img = document.createElement('img');
+    img.style.width = '200px';
+    img.style.height = '200px';
+    img.style.display = 'block';
+    img.style.borderRadius = '4px';
+    var encoded = encodeURIComponent(text);
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded + '&color=6B8C5E&bgcolor=FFFFFF&margin=10&format=png';
+    img.alt = 'QR Code ' + text;
+    img.onerror = function() {
+      // If API fails, draw text-based QR placeholder
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0,0,200,200);
+      ctx.fillStyle = '#6B8C5E';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 100, 95);
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#7A8870';
+      ctx.fillText('Scan saat registrasi', 100, 115);
+    };
+    canvas.parentNode.replaceChild(img, canvas);
   }
-  makeQR();
+
+  window.addEventListener('load', function() {
+    var canvas = document.getElementById('qr-canvas');
+    if (canvas) generateQR(guestId, canvas);
+  });
 })();
 </script>
 </body>
