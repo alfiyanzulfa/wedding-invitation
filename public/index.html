@@ -617,7 +617,7 @@ section{padding:72px 22px;position:relative;overflow:hidden}
     <div class="tab-bs"><button class="tab-b on" onclick="switchTab('tp-r',this)">Konfirmasi Hadir</button><button class="tab-b" onclick="switchTab('tp-w',this)">Doa &amp; Ucapan</button></div>
     <div id="tp-r" class="tab-p on">
       <div id="rsvp-form">
-        <div class="fg"><label>Nama Lengkap *</label><input id="r-nm" type="text" placeholder="Masukkan nama lengkap Anda"/></div>
+        <div class="fg"><label>Nama Lengkap *</label><input id="r-nm" type="text" placeholder="Nama Tamu" readonly style="background:rgba(169,185,154,.14);color:var(--ink2);cursor:default;border-color:rgba(169,185,154,.2);"/></div>
         <div class="fg"><label>Kehadiran *</label><div class="rr"><label class="ro sel" id="oh"><input type="radio" name="at" value="Hadir" checked onchange="pickAt(this)"/> ✓ &nbsp;Hadir</label><label class="ro" id="ot"><input type="radio" name="at" value="Tidak Hadir" onchange="pickAt(this)"/> ✗ &nbsp;Tidak Hadir</label></div></div>
         <div class="fg" id="jml-w"><label>Jumlah Tamu</label><input id="r-jml" type="number" min="1" max="20" value="1"/></div>
         <div class="fg"><label>Pesan (Opsional)</label><textarea id="r-msg" placeholder="Sampaikan pesan kepada kedua mempelai..."></textarea></div>
@@ -681,7 +681,12 @@ function supaFetch(path,method,body){
 (function(){
   var p=new URLSearchParams(location.search);
   var to=p.get('to');
-  if(to) document.getElementById('cov-guest').textContent=to;
+  if(to){
+    document.getElementById('cov-guest').textContent=to;
+    // Auto-fill & lock RSVP name field
+    var nm=document.getElementById('r-nm');
+    if(nm){ nm.value=to.split('+').join(' '); }
+  }
 })();
 
 
