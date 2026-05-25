@@ -669,8 +669,8 @@ section{padding:72px 22px;position:relative;overflow:hidden}
 </div><!-- /main -->
 
 <script>
-var SUPA_URL='https://ppprjxpmdhvxkuyugszl.supabase.co';
-var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcHJqeHBtZGh2eGt1eXVnc3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2Mzc4NTQsImV4cCI6MjA5NTIxMzg1NH0.m-irvWhO93G4Csxna0YSIbsVuD22SUvubpkfrZQWAjU';
+var SUPA_URL='https://YOUR_PROJECT_ID.supabase.co';
+var SUPA_KEY='YOUR_ANON_PUBLIC_KEY';
 function supaFetch(path,method,body){
   return fetch(SUPA_URL+'/rest/v1/'+path,{
     method:method||'GET',
@@ -776,10 +776,26 @@ function confirmRSVP(){
 (function(){
   var params=new URLSearchParams(location.search);
   var gid=params.get('id')||'GUEST-000';
-  if(localStorage.getItem('rsvp_done_'+gid)==='1'){
-    var f=document.getElementById('rsvp-form');var ok=document.getElementById('rsvp-ok');
-    if(f)f.style.display='none';if(ok)ok.classList.add('show');
-  }
+  // Check Supabase first (source of truth), fallback to localStorage
+  supaFetch('rsvp?guest_id=eq.'+encodeURIComponent(gid)+'&select=id&limit=1')
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data && data.length>0){
+      // Already submitted in Supabase
+      localStorage.setItem('rsvp_done_'+gid,'1');
+      var f=document.getElementById('rsvp-form');var ok=document.getElementById('rsvp-ok');
+      if(f)f.style.display='none';if(ok)ok.classList.add('show');
+    } else {
+      // Not in Supabase — clear any stale localStorage lock
+      localStorage.removeItem('rsvp_done_'+gid);
+    }
+  }).catch(function(){
+    // Network error — fallback to localStorage
+    if(localStorage.getItem('rsvp_done_'+gid)==='1'){
+      var f=document.getElementById('rsvp-form');var ok=document.getElementById('rsvp-ok');
+      if(f)f.style.display='none';if(ok)ok.classList.add('show');
+    }
+  });
 })();
 function pickAt(r){
   document.getElementById('oh').classList.toggle('sel',r.value==='Hadir');
@@ -849,7 +865,7 @@ loadWishes();
     img.style.display = 'block';
     img.style.borderRadius = '4px';
     var encoded = encodeURIComponent(text);
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded + '&color=6B8C5E&bgcolor=FFFFFF&margin=10&format=png';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded + '&color=000000&bgcolor=FFFFFF&margin=10&format=png';
     img.alt = 'QR Code ' + text;
     img.onerror = function() {
       // If API fails, draw text-based QR placeholder
